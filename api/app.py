@@ -4,6 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey
+from flask_restful import Api, Resource
+from werkzeug.utils import secure_filename
+from datetime import datetime
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,10 +15,25 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, 'database', 'adventure_log.db')}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# specify upload folder for snapshots
+UPLOAD_FOLDER = os.path.join(basedir, 'uploads', 'snapshots')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# specify file types for snapshots
+# TODO: migrate to utils.py?
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # initialize sqlalchemy
 db = SQLAlchemy()
 db.init_app(app)
 
+# initialize rest api
+api = Api(app)
+
+# MODELS
+# TODO: migrate to models.py
 class Robot(db.Model):
     __tablename__ = 'robots'
     # columns
@@ -29,12 +47,78 @@ class Snapshot(db.Model):
     # columns
     snapshot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_id: Mapped[int] = mapped_column(ForeignKey('robots.robot_id'), nullable=False)
-    timestamp: Mapped[str]
-    photo_path: Mapped[str]
-    description: Mapped[str]
+    timestamp: Mapped[str]      # time of photo
+    photo_path: Mapped[str]     # location of image file
+    instruction: Mapped[str]    # last instruction robot received
+    description: Mapped[str]    # comment generated for blog
     # many-to-one relationship with robots
     robot = db.relationship('Robot', back_populates='snapshots')
 
+# REST API RESOURCES
+class LogAPI(Resource):
+    def post(self):
+        try:
+            photo = request.files.get('photo')
+            timestamp = request.form.get('timestamp')
+            instruction = request.form.get('instruction')
+            robot_id = request.form.get('robot_id')
+            robot_name = request.form.get('robot_name')
+            
+            # VALIDATE INPUT
+            # check for non-nullable inputs
+            required_fields = {
+                "photo": photo,
+                "timestamp": timestamp,
+                "robot_id": robot_id
+            }
+            missing_fields = []
+            for key, value in required_fields.items():
+                if not value:
+                    missing_fields.append(key)
+            if missing_fields:
+                return {"message": f"Missing required input: {', '.join(missing_fields)}"}, 400
+            
+            # check timestamp format; convert to datetime if possible
+            try:
+                timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                return {"message": "Invalid timestamp format. Use YYYY-MM-DD HH:MM:SS"}, 400
+            
+            # check file type; if allowed, save to upload folder
+            if photo and allowed_file(photo.filename):
+                photo_name = secure_filename(photo.filename)
+                photo_path = os.path.join(app.config['UPLOAD_FOLDER'], photo_name)
+                photo.save(photo_path)
+            else:
+                return {"message": f"Invalid file type. Valid types are: {', '.join(list(ALLOWED_EXTENSIONS))}"}, 400
+            
+            # UPDATE DATABASE
+            # if robot not already in db, add it
+            if not db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars():
+                robot = Robot(
+                    robot_id = robot_id,
+                    robot_name = robot_name
+                )
+                db.session.add(robot)
+                
+            snapshot = Snapshot(
+                robot_id = robot_id,
+                timestamp = timestamp,
+                instruction = instruction,
+                photo_path = photo_path
+            )
+            db.session.add(snapshot)
+            
+            db.session.commit()
+            return {"message": "Snapshot saved successfully."}, 201
+        
+        except KeyError as e:
+            return {"message": {str(e)}}, 400
+        
+        except Exception as e:
+            return {"message": {str(e)}}, 500
+
+api.add_resource(LogAPI, '/log')
 
 # DEBUG
 def test_query():
@@ -49,8 +133,9 @@ def test_query():
             print(f'- Snapshot {snapshot.snapshot_id} taken {snapshot.timestamp}')
     db.session.rollback()
 
-with app.app_context():        
-    test_query()
+
+# with app.app_context():        
+    # test_query()
 
 # test connection at http://localhost:5001/test_db
 # code adapted from https://python-adv-web-apps.readthedocs.io/en/latest/flask_db1.html
