@@ -116,7 +116,33 @@ class RobotAPI(Resource):
             return {"message": {str(e)}}, 500
     
     def get(self):
-        pass
+        try:
+            # valid query args
+            robot_id = request.args.get('robot_id', type=int)
+            robot_name = request.args.get('robot_name', type=str)
+            
+            # start building query
+            stmt = select(Robot)
+            
+            # filter by args
+            if robot_id:
+                stmt = stmt.filter(Robot.robot_id == robot_id)
+                
+            if robot_name:
+                stmt = stmt.filter(Robot.robot_name == robot_name)
+            
+            # execute query
+            robots = db.session.execute(stmt).scalars().all()
+            
+            data = robot_schema.dump(robots, many=True)
+            return robot_schema.dump(data, many=True), 200
+        
+        except KeyError as e:
+            return {"message": {str(e)}}, 400
+        
+        except Exception as e:
+            return {"message": {str(e)}}, 500
+        
 
 class SnapshotAPI(Resource):
     def post(self):
