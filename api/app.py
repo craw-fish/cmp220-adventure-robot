@@ -79,21 +79,21 @@ class SnapshotAPI(Resource):
         try:
             # valid input fields
             photo = request.files.get('photo')
-            timestamp = request.form.get('timestamp')
-            instruction = request.form.get('instruction')
-            robot_id = request.form.get('robot_id')
-            robot_name = request.form.get('robot_name')
+            timestamp = request.form.get('timestamp', type=str)
+            instruction = request.form.get('instruction', type=str)
+            robot_id = request.form.get('robot_id', type=int)
+            robot_name = request.form.get('robot_name', type=str)
             
             # VALIDATE INPUT
             # check for non-nullable inputs
             required_fields = {
-                "photo": photo,
-                "timestamp": timestamp,
-                "robot_id": robot_id
+                'photo': photo,
+                'timestamp': timestamp,
+                'robot_id': robot_id
             }
             missing_fields = [key for key, value in required_fields.items() if not value]
             if missing_fields:
-                return {"message": f"Missing required input: {', '.join(missing_fields)}"}, 400
+                return {"message": f"Missing or invalid input: {', '.join(missing_fields)}"}, 400
             
             # check timestamp format; convert to datetime if possible
             try:
