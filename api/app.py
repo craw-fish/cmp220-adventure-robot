@@ -118,10 +118,10 @@ class RobotAPI(Resource):
             return {"message": "New robot registered successfully."}, 201
         
         except KeyError as e:
-            return {"message": {str(e)}}, 400
+            return {"message": str(e)}, 400
         
         except Exception as e:
-            return {"message": {str(e)}}, 500
+            return {"message": str(e)}, 500
     
     def get(self):
         try:
@@ -146,10 +146,10 @@ class RobotAPI(Resource):
             return robot_schema.dump(robots, many=True), 200
         
         except KeyError as e:
-            return {"message": {str(e)}}, 400
+            return {"message": str(e)}, 400
         
         except Exception as e:
-            return {"message": {str(e)}}, 500
+            return {"message": str(e)}, 500
         
 
 class SnapshotAPI(Resource):
@@ -186,11 +186,6 @@ class SnapshotAPI(Resource):
             else:
                 return {"message": f"Invalid file type. Valid types are: {', '.join(list(ALLOWED_EXTENSIONS))}"}, 400
             
-            # check if robot in db
-            robot = db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars().first()
-            if not robot:
-                return {"message": f"No robot with ID {robot_id}."}, 400
-            
             # UPDATE DATABASE
             snapshot = Snapshot(
                 robot_id = robot_id,
@@ -204,10 +199,10 @@ class SnapshotAPI(Resource):
             return {"message": "Snapshot saved successfully."}, 201
         
         except KeyError as e:
-            return {"message": {str(e)}}, 400
+            return {"message": str(e)}, 400
         
         except Exception as e:
-            return {"message": {str(e)}}, 500
+            return {"message": str(e)}, 500
     
     def get(self):
         try:
@@ -252,10 +247,10 @@ class SnapshotAPI(Resource):
             return snapshot_schema.dump(snapshots, many=True), 200
             
         except KeyError as e:
-            return {"message": {str(e)}}, 400
+            return {"message": str(e)}, 400
         
         except Exception as e:
-            return {"message": {str(e)}}, 500
+            return {"message": str(e)}, 500
                     
 api.add_resource(RobotAPI, '/robots')
 api.add_resource(SnapshotAPI, '/snapshots')
