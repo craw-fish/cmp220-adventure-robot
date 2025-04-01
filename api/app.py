@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, 'data
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # specify upload folder for snapshots
-UPLOAD_FOLDER = os.path.join(basedir, 'uploads', 'snapshots')
+UPLOAD_FOLDER = 'uploads/snapshots'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # specify file types for snapshots
 # TODO: migrate to utils.py?
