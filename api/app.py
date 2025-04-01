@@ -1,30 +1,19 @@
 import os
+import shortuuid
+from datetime import datetime
 from flask import Flask, request, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import ForeignKey, select
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, select
 from flask_restful import Api, Resource
 from flask_marshmallow import Marshmallow
-from datetime import datetime
-import shortuuid
-
-basedir = os.path.abspath(os.path.dirname(__file__))
+from config import Config
+from utils import allowed_extensions, allowed_file
 
 # initialize flask app
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, 'database', 'adventure_log.db')}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# specify upload folder for snapshots
-UPLOAD_FOLDER = 'uploads/snapshots'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-# specify file types for snapshots
-# TODO: migrate to utils.py?
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+app.config.from_object(Config)
 
 # initialize sqlalchemy
 db = SQLAlchemy()
@@ -189,7 +178,7 @@ class SnapshotAPI(Resource):
                 photo_filename = f"{shortuuid.uuid()}.{photo_extension}"
                 photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
             else:
-                return {"message": f"Invalid file type. Valid types are: {', '.join(list(ALLOWED_EXTENSIONS))}"}, 400
+                return {"message": f"Invalid file type. Valid types are: {', '.join(list(allowed_extensions))}"}, 400
             
             # UPDATE DATABASE
             snapshot = Snapshot(
