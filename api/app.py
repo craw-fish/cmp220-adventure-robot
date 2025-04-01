@@ -162,7 +162,6 @@ class SnapshotAPI(Resource):
                     t_start = datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
                 except ValueError:
                     return {"message": "Invalid timestamp format for t_start. Use YYYY-MM-DD HH:MM:SS"}, 400
-                # extend query
                 stmt = stmt.filter(Snapshot.timestamp >= t_start)
             if t_end:
                 try:
@@ -175,13 +174,7 @@ class SnapshotAPI(Resource):
             snapshots = db.session.execute(stmt).scalars().all()
             
             data = snapshot_schema.dump(snapshots, many=True)
-            
-            # return single object if querying by snapshot_id
-            if snapshot_id and data:
-                return snapshot_schema.dump(data[0]), 200
-            # else return list
-            else:
-                return snapshot_schema.dump(data, many=True), 200
+            return snapshot_schema.dump(data, many=True), 200
             
         except KeyError as e:
             return {"message": {str(e)}}, 400
@@ -189,7 +182,7 @@ class SnapshotAPI(Resource):
         except Exception as e:
             return {"message": {str(e)}}, 500
                     
-
+api.add_resource(RobotAPI, '/robots')
 api.add_resource(SnapshotAPI, '/snapshots')
 
 # test connection at http://localhost:5001/test_db
