@@ -6,8 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey, select
 from flask_restful import Api, Resource
 from flask_marshmallow import Marshmallow
-from werkzeug.utils import secure_filename
 from datetime import datetime
+import shortuuid
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -105,8 +105,10 @@ class SnapshotAPI(Resource):
             
             # check file type; if allowed, save to upload folder
             if photo and allowed_file(photo.filename):
-                photo_name = secure_filename(photo.filename)
-                photo_path = os.path.join(app.config['UPLOAD_FOLDER'], photo_name)
+                file_extension = photo.filename.rsplit('.', 1)[1].lower()
+                # generate unique filename
+                unique_filename = f"{shortuuid.uuid()}.{file_extension}"
+                photo_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                 photo.save(photo_path)
             else:
                 return {"message": f"Invalid file type. Valid types are: {', '.join(list(ALLOWED_EXTENSIONS))}"}, 400
