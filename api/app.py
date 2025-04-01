@@ -178,6 +178,11 @@ class SnapshotAPI(Resource):
             except ValueError:
                 return {"message": "Invalid timestamp format. Use YYYY-MM-DD HH:MM:SS"}, 400
             
+            # check if robot in db
+            robot = db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars().first()
+            if not robot:
+                return {"message": f"No robot with ID {robot_id}."}, 400
+            
             # check file type; if allowed, save to upload folder
             if photo and allowed_file(photo.filename):
                 photo_extension = photo.filename.rsplit('.', 1)[1].lower()
