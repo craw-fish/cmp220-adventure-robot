@@ -33,10 +33,10 @@ db.init_app(app)
 # initialize rest api
 api = Api(app)
 
-# initialize marshmallow (data serialization/validation)
+# initialize marshmallow (data serialization)
 ma = Marshmallow(app)
 
-# MODELS
+# SQLALCHEMY MODELS
 # TODO: migrate to models.py
 class Robot(db.Model):
     __tablename__ = 'robots'
@@ -77,6 +77,7 @@ snapshot_schema = SnapshotSchema()
 class SnapshotAPI(Resource):
     def post(self):
         try:
+            # valid input fields
             photo = request.files.get('photo')
             timestamp = request.form.get('timestamp')
             instruction = request.form.get('instruction')
@@ -141,6 +142,7 @@ class SnapshotAPI(Resource):
     
     def get(self):
         try:
+            # valid query args
             robot_id = request.args.get('robot_id', type=int)
             snapshot_id = request.args.get('snapshot_id', type=int)
             t_start = request.args.get('t_start', type=str)
@@ -193,7 +195,6 @@ def test_db():
         db.session.query(text('1')).from_statement(text('SELECT 1')).all()
         return '<h1>Connection successful.</h1>'
     except Exception as e:
-        # e holds description of the error
         error_text = "<p>The error:<br>" + str(e) + "</p>"
         hed = '<h1>Something is broken.</h1>'
         return hed + error_text
