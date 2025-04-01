@@ -91,10 +91,7 @@ class SnapshotAPI(Resource):
                 "timestamp": timestamp,
                 "robot_id": robot_id
             }
-            missing_fields = []
-            for key, value in required_fields.items():
-                if not value:
-                    missing_fields.append(key)
+            missing_fields = [key for key, value in required_fields.items() if not value]
             if missing_fields:
                 return {"message": f"Missing required input: {', '.join(missing_fields)}"}, 400
             
