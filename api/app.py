@@ -129,7 +129,8 @@ class RobotAPI(Resource):
                 stmt = stmt.filter(Robot.robot_id == robot_id)
                 
             if robot_name:
-                stmt = stmt.filter(Robot.robot_name == robot_name)
+                # 'like' query (supports wildcards)
+                stmt = stmt.filter(Robot.robot_name.like(robot_name))
             
             # execute query
             robots = db.session.execute(stmt).scalars().all()
@@ -210,6 +211,7 @@ class SnapshotAPI(Resource):
             snapshot_id = request.args.get('snapshot_id', type=int)
             t_start = request.args.get('t_start', type=str)
             t_end = request.args.get('t_end', type=str)
+            instruction = request.args.get('instruction', type=str)
             
             # start building query
             stmt = select(Snapshot)
@@ -234,6 +236,10 @@ class SnapshotAPI(Resource):
                 except ValueError:
                     return {"message": "Invalid timestamp format for t_end. Use YYYY-MM-DD HH:MM:SS"}, 400
                 stmt = stmt.filter(Snapshot.timestamp <= t_end)
+                
+            if instruction:
+                # 'like' query (supports wildcards)
+                stmt = stmt.filter(Snapshot.instruction.like(instruction))
             
             # execute query
             snapshots = db.session.execute(stmt).scalars().all()
