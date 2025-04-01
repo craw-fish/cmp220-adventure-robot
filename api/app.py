@@ -190,23 +190,6 @@ class SnapshotAPI(Resource):
 
 api.add_resource(SnapshotAPI, '/snapshots')
 
-# DEBUG
-def test_query():
-    # add an entry to robot and snapshot tables
-    db.session.add(Robot(robot_name='Justin'))
-    db.session.add(Snapshot(robot_id=1, timestamp='2025-27-03 13:22:00'))
-    robots = db.session.execute(db.select(Robot)).scalars()
-    # list snapshots for each robot
-    for robot in robots:
-        print(f'ROBOT {robot.robot_id} ({robot.robot_name})')
-        for snapshot in robot.snapshots:
-            print(f'- Snapshot {snapshot.snapshot_id} taken {snapshot.timestamp}')
-    db.session.rollback()
-
-
-# with app.app_context():        
-    # test_query()
-
 # test connection at http://localhost:5001/test_db
 # code adapted from https://python-adv-web-apps.readthedocs.io/en/latest/flask_db1.html
 @app.route('/test_db')
@@ -222,4 +205,3 @@ def test_db():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
-
