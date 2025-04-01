@@ -135,8 +135,7 @@ class RobotAPI(Resource):
             # execute query
             robots = db.session.execute(stmt).scalars().all()
             
-            data = robot_schema.dump(robots, many=True)
-            return robot_schema.dump(data, many=True), 200
+            return robot_schema.dump(robots, many=True), 200
         
         except KeyError as e:
             return {"message": {str(e)}}, 400
@@ -244,8 +243,7 @@ class SnapshotAPI(Resource):
             # execute query
             snapshots = db.session.execute(stmt).scalars().all()
             
-            data = snapshot_schema.dump(snapshots, many=True)
-            return snapshot_schema.dump(data, many=True), 200
+            return snapshot_schema.dump(snapshots, many=True), 200
             
         except KeyError as e:
             return {"message": {str(e)}}, 400
