@@ -3,8 +3,9 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, select
 from flask_restful import Api, Resource
+from flask_marshmallow import Marshmallow
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
@@ -32,6 +33,9 @@ db.init_app(app)
 # initialize rest api
 api = Api(app)
 
+# initialize marshmallow (data serialization/validation)
+ma = Marshmallow(app)
+
 # MODELS
 # TODO: migrate to models.py
 class Robot(db.Model):
@@ -48,14 +52,29 @@ class Snapshot(db.Model):
     snapshot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_id: Mapped[int] = mapped_column(ForeignKey('robots.robot_id'), nullable=False)
     timestamp: Mapped[str]      # time of photo
-    photo_path: Mapped[str]     # location of image file
+    photo_path: Mapped[str]     # pathname of image file
     instruction: Mapped[str]    # last instruction robot received
     description: Mapped[str]    # comment generated for blog
     # many-to-one relationship with robots
     robot = db.relationship('Robot', back_populates='snapshots')
 
+# MARSHMALLOW SCHEMAS
+class RobotSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Robot
+        load_instance = True
+
+class SnapshotSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Snapshot
+        load_instance = True
+    robot = ma.Nested(RobotSchema)
+
+# initialize schemas
+snapshot_schema = SnapshotSchema()
+
 # REST API RESOURCES
-class LogAPI(Resource):
+class SnapshotAPI(Resource):
     def post(self):
         try:
             photo = request.files.get('photo')
@@ -94,7 +113,7 @@ class LogAPI(Resource):
             
             # UPDATE DATABASE
             # if robot not already in db, add it
-            if not db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars():
+            if not db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars().first():
                 robot = Robot(
                     robot_id = robot_id,
                     robot_name = robot_name
@@ -117,8 +136,59 @@ class LogAPI(Resource):
         
         except Exception as e:
             return {"message": {str(e)}}, 500
+    
+    def get(self):
+        try:
+            robot_id = request.args.get('robot_id', type=int)
+            snapshot_id = request.args.get('snapshot_id', type=int)
+            t_start = request.args.get('t_start', type=str)
+            t_end = request.args.get('t_end', type=str)
+            
+            # start building query
+            stmt = select(Snapshot)
+            
+            # filter by args
+            if robot_id:
+                stmt = stmt.filter(Snapshot.robot_id == robot_id)
+                
+            if snapshot_id:
+                stmt = stmt.filter(Snapshot.snapshot_id == snapshot_id)
+            
+            if t_start:
+                # check timestamp format; convert to datetime if possible
+                try:
+                    t_start = datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    return {"message": "Invalid timestamp format for t_start. Use YYYY-MM-DD HH:MM:SS"}, 400
+                # extend query
+                stmt = stmt.filter(Snapshot.timestamp >= t_start)
+            if t_end:
+                try:
+                    t_end = datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    return {"message": "Invalid timestamp format for t_end. Use YYYY-MM-DD HH:MM:SS"}, 400
+                stmt = stmt.filter(Snapshot.timestamp <= t_end)
+            
+            # execute query
+            snapshots = db.session.execute(stmt).scalars().all()
+            
+            data = snapshot_schema.dump(snapshots, many=True)
+            
+            # return single object if querying by snapshot_id
+            if snapshot_id and data:
+                return snapshot_schema.dump(data[0]), 200
+            # else return list
+            else:
+                return snapshot_schema.dump(data, many=True), 200
+            
+        except KeyError as e:
+            return {"message": {str(e)}}, 400
+        
+        except Exception as e:
+            return {"message": {str(e)}}, 500
+                    
 
-api.add_resource(LogAPI, '/log')
+api.add_resource(SnapshotAPI, '/snapshots')
 
 # DEBUG
 def test_query():
