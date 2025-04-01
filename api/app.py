@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -52,7 +52,7 @@ class Snapshot(db.Model):
     snapshot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_id: Mapped[int] = mapped_column(ForeignKey('robots.robot_id'), nullable=False)
     timestamp: Mapped[str]      # time of photo
-    photo_path: Mapped[str]     # pathname of image file
+    photo_filename: Mapped[str] # pathname of image file
     instruction: Mapped[str]    # last instruction robot received
     description: Mapped[str]    # comment generated for blog
     # many-to-one relationship with robots
@@ -68,7 +68,15 @@ class SnapshotSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Snapshot
         load_instance = True
+        exclude = ('photo_filename',)
+    
     robot = ma.Nested(RobotSchema)
+    # computed field for static file url
+    photo_url = ma.Method('get_photo_url')
+    
+    def get_photo_url(self, obj):
+        return url_for('get_snapshot_photo', filename=obj.photo_filename, _external=True)
+        
 
 # initialize schemas
 robot_schema = RobotSchema()
@@ -172,11 +180,9 @@ class SnapshotAPI(Resource):
             
             # check file type; if allowed, save to upload folder
             if photo and allowed_file(photo.filename):
-                file_extension = photo.filename.rsplit('.', 1)[1].lower()
-                # generate unique filename
-                unique_filename = f"{shortuuid.uuid()}.{file_extension}"
-                photo_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                photo.save(photo_path)
+                photo_extension = photo.filename.rsplit('.', 1)[1].lower()
+                photo_filename = f"{shortuuid.uuid()}.{photo_extension}"
+                photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
             else:
                 return {"message": f"Invalid file type. Valid types are: {', '.join(list(ALLOWED_EXTENSIONS))}"}, 400
             
@@ -190,7 +196,7 @@ class SnapshotAPI(Resource):
                 robot_id = robot_id,
                 timestamp = timestamp,
                 instruction = instruction,
-                photo_path = photo_path
+                photo_filename = photo_filename
             )
             db.session.add(snapshot)
             
@@ -253,6 +259,11 @@ class SnapshotAPI(Resource):
                     
 api.add_resource(RobotAPI, '/robots')
 api.add_resource(SnapshotAPI, '/snapshots')
+
+# snapshot photos retrievable via http://localhost:5001/snapshots/
+@app.route('/snapshots/<filename>')
+def get_snapshot_photo(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # test connection at http://localhost:5001/test_db
 # code adapted from https://python-adv-web-apps.readthedocs.io/en/latest/flask_db1.html
