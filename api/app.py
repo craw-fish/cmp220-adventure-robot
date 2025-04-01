@@ -71,9 +71,53 @@ class SnapshotSchema(ma.SQLAlchemyAutoSchema):
     robot = ma.Nested(RobotSchema)
 
 # initialize schemas
+robot_schema = RobotSchema()
 snapshot_schema = SnapshotSchema()
 
 # REST API RESOURCES
+class RobotAPI(Resource):
+    def post(self):
+        try:
+            robot_id = request.form.get('robot_id')
+            robot_name = request.form.get('robot_name', type=str)
+            
+            # check for non-nullable inputs
+            required_fields = {
+                'robot_name': robot_name
+            }
+            missing_fields = [key for key, value in required_fields.items() if not value]
+            if missing_fields:
+                return {"message": f"Missing or invalid input: {', '.join(missing_fields)}"}, 400
+            
+            # id specified -> overwrite existing robot
+            # no id specified -> create new robot (auto-increment)
+            if robot_id:
+                # robot at specified id
+                robot = db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars().first()
+                if robot:
+                    robot.robot_name = robot_name
+                    db.session.commit()
+                    return {"message": f"Robot with ID {robot_id} overwritten successfully."}, 201
+                else:
+                    return {"message": f"No robot with ID {robot_id}."}, 400
+
+            robot = Robot(
+                robot_name = robot_name
+            )
+            db.session.add(robot)
+            
+            db.session.commit()
+            return {"message": "New robot registered successfully."}, 201
+        
+        except KeyError as e:
+            return {"message": {str(e)}}, 400
+        
+        except Exception as e:
+            return {"message": {str(e)}}, 500
+    
+    def get(self):
+        pass
+
 class SnapshotAPI(Resource):
     def post(self):
         try:
@@ -82,7 +126,6 @@ class SnapshotAPI(Resource):
             timestamp = request.form.get('timestamp', type=str)
             instruction = request.form.get('instruction', type=str)
             robot_id = request.form.get('robot_id', type=int)
-            robot_name = request.form.get('robot_name', type=str)
             
             # VALIDATE INPUT
             # check for non-nullable inputs
@@ -111,15 +154,12 @@ class SnapshotAPI(Resource):
             else:
                 return {"message": f"Invalid file type. Valid types are: {', '.join(list(ALLOWED_EXTENSIONS))}"}, 400
             
+            # check if robot in db
+            robot = db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars().first()
+            if not robot:
+                return {"message": f"No robot with ID {robot_id}."}, 400
+            
             # UPDATE DATABASE
-            # if robot not already in db, add it
-            if not db.session.execute(db.select(Robot).where(Robot.robot_id == robot_id)).scalars().first():
-                robot = Robot(
-                    robot_id = robot_id,
-                    robot_name = robot_name
-                )
-                db.session.add(robot)
-                
             snapshot = Snapshot(
                 robot_id = robot_id,
                 timestamp = timestamp,
