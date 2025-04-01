@@ -42,7 +42,7 @@ class Robot(db.Model):
     __tablename__ = 'robots'
     # columns
     robot_id: Mapped[int] = mapped_column(primary_key=True)
-    robot_name: Mapped[str]
+    robot_name: Mapped[str] = mapped_column(nullable=False)
     # one-to-many relationship with snapshots
     snapshots = db.relationship('Snapshot', back_populates='robot')
 
@@ -51,10 +51,10 @@ class Snapshot(db.Model):
     # columns
     snapshot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_id: Mapped[int] = mapped_column(ForeignKey('robots.robot_id'), nullable=False)
-    timestamp: Mapped[str]      # time of photo
-    photo_filename: Mapped[str] # pathname of image file
-    instruction: Mapped[str]    # last instruction robot received
-    description: Mapped[str]    # comment generated for blog
+    timestamp: Mapped[str] = mapped_column(nullable=False)
+    photo_filename: Mapped[str] = mapped_column(nullable=False)
+    instruction: Mapped[str] = mapped_column(nullable=True)
+    description: Mapped[str] = mapped_column(nullable=True)
     # many-to-one relationship with robots
     robot = db.relationship('Robot', back_populates='snapshots')
 
