@@ -249,17 +249,16 @@ class SnapshotAPI(Resource):
 api.add_resource(RobotAPI, '/robots')
 api.add_resource(SnapshotAPI, '/snapshots')
 
-# snapshot photos retrievable via http://localhost:5001/snapshots/
+# snapshot photos retrievable via http://.../snapshots/
 @app.route('/snapshots/<filename>')
 def get_snapshot_photo(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# test connection at http://localhost:5001/test_db
-# code adapted from https://python-adv-web-apps.readthedocs.io/en/latest/flask_db1.html
+# test connection at http://.../test_db
 @app.route('/test_db')
 def test_db():
     try:
-        db.session.query(text('1')).from_statement(text('SELECT 1')).all()
+        db.session.execute(text('SELECT 1')).all()
         return '<h1>Connection successful.</h1>'
     except Exception as e:
         error_text = "<p>The error:<br>" + str(e) + "</p>"
