@@ -6,3 +6,4 @@ class Config():
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(basedir, 'database', 'adventure_log.db')}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = 'uploads/snapshots'
+    DEBUG = True
