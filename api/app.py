@@ -15,21 +15,14 @@ from utils import allowed_extensions, allowed_file
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# initialize sqlalchemy
-db = SQLAlchemy()
-db.init_app(app)
-
-# initialize rest api
+# initialize flask extensions
+db = SQLAlchemy(app)
+ma = Marshmallow(app)
 api = Api(app)
 
-# initialize marshmallow (data serialization)
-ma = Marshmallow(app)
-
 # SQLALCHEMY MODELS
-# TODO: migrate to models.py
 class Robot(db.Model):
     __tablename__ = 'robots'
-    # columns
     robot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_name: Mapped[str] = mapped_column(nullable=False)
     # one-to-many relationship with snapshots
@@ -37,7 +30,6 @@ class Robot(db.Model):
 
 class Snapshot(db.Model):
     __tablename__ = 'snapshots'
-    # columns
     snapshot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_id: Mapped[int] = mapped_column(ForeignKey('robots.robot_id'), nullable=False)
     timestamp: Mapped[str] = mapped_column(nullable=False)
@@ -65,7 +57,6 @@ class SnapshotSchema(ma.SQLAlchemyAutoSchema):
     
     def get_photo_url(self, obj):
         return url_for('get_snapshot_photo', filename=obj.photo_filename, _external=True)
-        
 
 # initialize schemas
 robot_schema = RobotSchema()
