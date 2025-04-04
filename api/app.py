@@ -3,7 +3,7 @@ import shortuuid
 from datetime import datetime
 from flask import Flask, request, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, select
+from sqlalchemy import ForeignKey, DateTime, select
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column
 from flask_restful import Api, Resource
@@ -32,7 +32,7 @@ class Snapshot(db.Model):
     __tablename__ = 'snapshots'
     snapshot_id: Mapped[int] = mapped_column(primary_key=True)
     robot_id: Mapped[int] = mapped_column(ForeignKey('robots.robot_id'), nullable=False)
-    timestamp: Mapped[str] = mapped_column(nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     photo_filename: Mapped[str] = mapped_column(nullable=False)
     instruction: Mapped[str] = mapped_column(nullable=True)
     description: Mapped[str] = mapped_column(nullable=True)
