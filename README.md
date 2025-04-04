@@ -12,7 +12,7 @@ First, a **robot** must be registered in the database. This is done via a POST r
 <details>
 <summary><b>Example: Registering a robot</b></summary>
 
-```ps
+```sh
 curl -X POST "http://localhost:5001/robots" \
      -F "robot_name=Justin"
 ```
@@ -25,7 +25,7 @@ Note that robot data may also be overwritten by specifying an existing `robot_id
 <details>
 <summary><b>Example: Changing a robot's name</b></summary>
 
-```ps
+```sh
 curl -X POST "http://localhost:5001/robots" \
      -F "robot_id=1"
      -F "robot_name=PhilBot"
@@ -44,7 +44,7 @@ Afterwards, **“snapshots”** from the robot’s journey can be uploaded to th
 <details>
 <summary><b>Example: Uploading a snapshot</b></summary>
 
-```ps
+```sh
 curl -X POST "http://localhost:5001/snapshots" \
      -F "photo=@/Users/max.crawford/Desktop/placeholder.png" \
      -F "timestamp=2025-04-01 12:01:23" \
@@ -59,7 +59,7 @@ curl -X POST "http://localhost:5001/snapshots" \
 <details>
 <summary><b>Example: All robots</b></summary>
 
-```ps
+```sh
 curl -X GET "http://localhost:5001/robots"
 ```
 ```json
@@ -85,7 +85,7 @@ To retrieve information about particular robots, the following may be queried:
 <details>
 <summary><b>Example: Robots by ID</b></summary>
 
-```ps
+```sh
 curl -X GET "http://localhost:5001/robots/?robot_id=1"
 ```
 ```json
@@ -100,7 +100,7 @@ curl -X GET "http://localhost:5001/robots/?robot_id=1"
 <details>
 <summary><b>Example: Robots by name</b></summary>
 
-```ps
+```sh
 curl -X GET "http://localhost:5001/robots?robot_name=%stin"
 ```
 ```json
@@ -131,7 +131,7 @@ curl -X GET "http://localhost:5001/robots?robot_name=%stin"
 <details>
 <summary><b>Example: All snapshots</b></summary>
 
-```ps
+```sh
 curl -X GET "http://localhost:5001/snapshots"
 ```
 ```json
@@ -184,7 +184,7 @@ Snapshots may be queried by the following fields:
 <details>
 <summary><b>Example: Snapshots filtered</b></summary>
 
-```ps
+```sh
 curl -X GET "http://localhost:5001/snapshots?t_start=2025-04-01%2012:05:00&robot_id=2"
 ```
 ```json
