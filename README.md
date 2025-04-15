@@ -38,7 +38,7 @@ curl -X POST "https://crawfish.pythonanywhere.com/robots" \
 
 Afterwards, **“snapshots”** from the robot’s journey can be uploaded to the Snapshots endpoint. Any such POST request may contain the following arguments: \
 *(\* = required)*
-- `*` `photo`: path to the associated photo, on your local machine (jpg, jpeg, or png)
+- `*` `photo`: path to the associated photo, on your local machine (jpg, jpeg, or png; **max 1 MB**)
 - `*` `timestamp`: time when the photo was taken (YYYY-MM-DD HH:MM:SS)
 - `*` `robot_id`: numeric ID of associated robot (refer to Robots table)
 - `instruction`: last instruction robot received prior to snapshot
