@@ -240,6 +240,11 @@ class SnapshotAPI(Resource):
 api.add_resource(RobotAPI, '/robots')
 api.add_resource(SnapshotAPI, '/snapshots')
 
+@app.route('/')
+def home():
+    return '<h1>CMP220 Adventure Robot API</h1>\
+        <p>Please reference the README on Github for instructions.</p>'
+
 # snapshot photos retrievable via http://.../snapshots/
 @app.route('/snapshots/<filename>')
 def get_snapshot_photo(filename):
