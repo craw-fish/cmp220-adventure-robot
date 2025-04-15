@@ -3,6 +3,8 @@ Collaborative final project for CMP220 (Spring 2025)
 - [Uploading to the API](#uploading)
 - [Retrieving from the API](#retrieving)
 
+The API is currently hosted at https://crawfish.pythonanywhere.com/
+
 ## Using the API
 
 ### Uploading
@@ -13,7 +15,7 @@ First, a **robot** must be registered in the database. This is done via a POST r
 <summary><b>Example: Registering a robot</b></summary>
 
 ```sh
-curl -X POST "http://localhost:5001/robots" \
+curl -X POST "https://crawfish.pythonanywhere.com/robots" \
      -F "robot_name=Justin"
 ```
 </details>
@@ -26,7 +28,7 @@ Note that robot data may also be overwritten by specifying an existing `robot_id
 <summary><b>Example: Changing a robot's name</b></summary>
 
 ```sh
-curl -X POST "http://localhost:5001/robots" \
+curl -X POST "https://crawfish.pythonanywhere.com/robots" \
      -F "robot_id=1"
      -F "robot_name=PhilBot"
 ```
@@ -36,7 +38,7 @@ curl -X POST "http://localhost:5001/robots" \
 
 Afterwards, **“snapshots”** from the robot’s journey can be uploaded to the Snapshots endpoint. Any such POST request may contain the following arguments: \
 *(\* = required)*
-- `*` `photo`: local path to the photo associated with the snapshot (jpg, jpeg, or png)
+- `*` `photo`: path to the associated photo, on your local machine (jpg, jpeg, or png)
 - `*` `timestamp`: time when the photo was taken (YYYY-MM-DD HH:MM:SS)
 - `*` `robot_id`: numeric ID of associated robot (refer to Robots table)
 - `instruction`: last instruction robot received prior to snapshot
@@ -45,8 +47,8 @@ Afterwards, **“snapshots”** from the robot’s journey can be uploaded to th
 <summary><b>Example: Uploading a snapshot</b></summary>
 
 ```sh
-curl -X POST "http://localhost:5001/snapshots" \
-     -F "photo=@/Users/max.crawford/Desktop/placeholder.png" \
+curl -X POST "https://crawfish.pythonanywhere.com/snapshots" \
+     -F "photo=@/Users/user/Desktop/placeholder.png" \
      -F "timestamp=2025-04-01 12:01:23" \
      -F "instruction=move forward" \
      -F "robot_id=1"
@@ -60,7 +62,7 @@ curl -X POST "http://localhost:5001/snapshots" \
 <summary><b>Example: All robots</b></summary>
 
 ```sh
-curl -X GET "http://localhost:5001/robots"
+curl -X GET "https://crawfish.pythonanywhere.com/robots"
 ```
 ```json
 [
@@ -86,7 +88,7 @@ To retrieve information about particular robots, the following may be queried:
 <summary><b>Example: Robots by ID</b></summary>
 
 ```sh
-curl -X GET "http://localhost:5001/robots/?robot_id=1"
+curl -X GET "https://crawfish.pythonanywhere.com/robots/?robot_id=1"
 ```
 ```json
 [
@@ -101,7 +103,7 @@ curl -X GET "http://localhost:5001/robots/?robot_id=1"
 <summary><b>Example: Robots by name</b></summary>
 
 ```sh
-curl -X GET "http://localhost:5001/robots?robot_name=%stin"
+curl -X GET "https://crawfish.pythonanywhere.com/robots?robot_name=%stin"
 ```
 ```json
 [
@@ -132,7 +134,7 @@ curl -X GET "http://localhost:5001/robots?robot_name=%stin"
 <summary><b>Example: All snapshots</b></summary>
 
 ```sh
-curl -X GET "http://localhost:5001/snapshots"
+curl -X GET "https://crawfish.pythonanywhere.com/snapshots"
 ```
 ```json
 [
@@ -141,7 +143,7 @@ curl -X GET "http://localhost:5001/snapshots"
       "robot_id": 1,
       "robot_name": "Justin"
     },
-    "photo_url": "http://localhost:5001/snapshots/AdK5Kywr4eMCvA2immSYEQ.png",
+    "photo_url": "https://crawfish.pythonanywhere.com/snapshots/AdK5Kywr4eMCvA2immSYEQ.png",
     "snapshot_id": 1,
     "timestamp": "2025-04-01T12:01:23",
     "instruction": "move forward",
@@ -152,7 +154,7 @@ curl -X GET "http://localhost:5001/snapshots"
       "robot_id": 1,
       "robot_name": "Justin"
     },
-    "photo_url": "http://localhost:5001/snapshots/XpeqTcyLcCjuQHCSrWEhf2.png",
+    "photo_url": "https://crawfish.pythonanywhere.com/snapshots/XpeqTcyLcCjuQHCSrWEhf2.png",
     "snapshot_id": 2,
     "timestamp": "2025-04-01T12:05:00",
     "instruction": null,
@@ -163,7 +165,7 @@ curl -X GET "http://localhost:5001/snapshots"
       "robot_id": 2,
       "robot_name": "Dustin"
     },
-    "photo_url": "http://localhost:5001/snapshots/JkE43eBbfRXcPs4rmtByrh.png",
+    "photo_url": "https://crawfish.pythonanywhere.com/snapshots/JkE43eBbfRXcPs4rmtByrh.png",
     "snapshot_id": 3,
     "timestamp": "2025-04-02T00:00:01",
     "instruction": "move backward",
@@ -185,7 +187,7 @@ Snapshots may be queried by the following fields:
 <summary><b>Example: Snapshots filtered</b></summary>
 
 ```sh
-curl -X GET "http://localhost:5001/snapshots?t_start=2025-04-01%2012:05:00&robot_id=2"
+curl -X GET "https://crawfish.pythonanywhere.com/snapshots?t_start=2025-04-01%2012:05:00&robot_id=2"
 ```
 ```json
 [
@@ -194,7 +196,7 @@ curl -X GET "http://localhost:5001/snapshots?t_start=2025-04-01%2012:05:00&robot
       "robot_id": 2,
       "robot_name": "Dustin"
     },
-    "photo_url": "http://localhost:5001/snapshots/JkE43eBbfRXcPs4rmtByrh.png",
+    "photo_url": "https://crawfish.pythonanywhere.com/snapshots/JkE43eBbfRXcPs4rmtByrh.png",
     "snapshot_id": 3,
     "timestamp": "2025-04-02T00:00:01",
     "instruction": "move backward",
